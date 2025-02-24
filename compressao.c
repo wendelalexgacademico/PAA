@@ -12,7 +12,8 @@ int main(int argc, char *argv[]){
     int i=0;
     for(i=0; i<quantidade_de_Sequências; i++){
             
-            int quantidade_de_simbolos;//ler a quantidade de simbolos
+            int quantidade_de_Simbolos;
+            sscanf("%d", &quantidade_de_Simbolos, entrada);//ler a quantidade de simbolos
             //chamar a função que vai ter a quantidade como parâmetro, para ler e armazenar os simbolos
             //função para comprimir os símbolos lidos como HUF
             //função para comprimir os símbolos lidos como RLE
