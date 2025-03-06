@@ -52,6 +52,36 @@ indice++;
 }
 }
 
+char* ler_linha(FILE* arquivo) {
+    size_t tamanho = 0;
+    size_t capacidade = 100; // Tamanho inicial
+    char* linha = (char*)malloc(capacidade * sizeof(char));
+    if (linha == NULL) {
+        printf("Erro ao alocar memória.\n");
+        return NULL;
+    }
+
+    int caractere;
+    while ((caractere = fgetc(arquivo)) != EOF && caractere != '\n' && caractere!= ' ') {
+        linha[tamanho++] = (char)caractere;
+
+        // Redimensiona a memória se necessário
+        if (tamanho >= capacidade) {
+            capacidade *= 2;
+            char* nova_linha = (char*)realloc(linha, capacidade * sizeof(char));
+            if (nova_linha == NULL) {
+                printf("Erro ao realocar memória.\n");
+                free(linha);
+                return NULL;
+            }
+            linha = nova_linha;
+        }
+    }
+
+    linha[tamanho] = '\0'; // Adiciona o terminador nulo
+    return linha;
+}
+
 
 int main(int argc, char *argv[]){
 
@@ -80,21 +110,8 @@ int main(int argc, char *argv[]){
     fgetc(entrada);
     
     // Lê a segunda linha (código DNA)
-    int32_t contcar=0;
-     while(1){
-     int caractere = fgetc(entrada); // CORRETO
-     if (caractere == '\n' || caractere == EOF) {
-          
-          codigo_dna[contcar] = '\0';
-          break;
-     
-     }
-     
-     codigo_dna[contcar] = (char)caractere; // Conversão para char
-     contcar++;
-    
-    }
-     contcar=0;
+    codigo_dna=ler_linha(entrada);
+  
     // Lê a terceira linha (número de doenças)
     fscanf(entrada, "%d", &numero_doencas);
 
@@ -106,16 +123,7 @@ int main(int argc, char *argv[]){
         fgetc(entrada); // Consome o '\n' restante da linha anterior
         
         // Lê o código da doença
-        while(1){
-          char *caractere=fgetc(entrada);
-          if(caractere==' '){
-          codigo_dna[contcar]='\0';
-          break;
-          }
-          codigo_doenca_da_vez[contcar]=caractere;
-          contcar++;
-          }
-          contcar=0;
+        codigo_doenca_da_vez=ler_linha(entrada);
 
         // Lê o número de genes da doença
         fscanf(entrada, "%d", &numero_genes_doenca_da_vez);
@@ -124,16 +132,8 @@ int main(int argc, char *argv[]){
         for (int j = 0; j < numero_genes_doenca_da_vez; j++) {
             char *subcadeia_da_vez = NULL;
 
-          while(1){
-          char *caractere=fgetc(entrada);
-          if(caractere==' '){
-          codigo_dna[contcar]='\0';
-          break;
-          }
-          subcadeia_da_vez[i]=caractere;
-          contcar++;
-          }
-          contcar=0;
+            subcadeia_da_vez=ler_linha(entrada);
+          
             // Aqui você pode processar a subcadeia_da_vez (gene) como necessário
             printf("Doença: %s, Gene %d: %s\n", codigo_doenca_da_vez, j + 1, subcadeia_da_vez);
 
