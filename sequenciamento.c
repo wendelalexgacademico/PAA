@@ -55,8 +55,18 @@ indice++;
 
 int main(int argc, char *argv[]){
 
-     FILE *entrada = fopen(argv[1], "r");//habilita a leitura do arquivo
-     FILE *saida = fopen(argv[1], "w");  //habilita a escrita no arquivo
+     FILE *entrada = fopen(argv[1], "r");
+     if (entrada == NULL) {
+          printf("Erro ao abrir o arquivo de entrada.\n");
+          return 1;
+     }
+
+     FILE *saida = fopen(argv[2], "w"); // Arquivo de saída diferente
+     if (saida == NULL) {
+          printf("Erro ao abrir o arquivo de saída.\n");
+          fclose(entrada);
+          return 1;
+     }
 
       // Variáveis para armazenar os dados
     int tamanho_minimo_subcadeia;
@@ -70,18 +80,21 @@ int main(int argc, char *argv[]){
     fgetc(entrada);
     
     // Lê a segunda linha (código DNA)
-    int32_t i=0;
-    while(1){
-     char *caractere=fgetc(entrada);
-     if(caractere=='\n'){
-          codigo_dna[i]='\0';
+    int32_t contcar=0;
+     while(1){
+     int caractere = fgetc(entrada); // CORRETO
+     if (caractere == '\n' || caractere == EOF) {
+          
+          codigo_dna[contcar] = '\0';
           break;
-          i=0;
+     
      }
-     codigo_dna[i]=caractere;
-     i++;
+     
+     codigo_dna[contcar] = (char)caractere; // Conversão para char
+     contcar++;
+    
     }
-
+     contcar=0;
     // Lê a terceira linha (número de doenças)
     fscanf(entrada, "%d", &numero_doencas);
 
@@ -96,13 +109,13 @@ int main(int argc, char *argv[]){
         while(1){
           char *caractere=fgetc(entrada);
           if(caractere==' '){
-          codigo_dna[i]='\0';
+          codigo_dna[contcar]='\0';
           break;
-          i=0;
           }
-          codigo_doenca_da_vez[i]=caractere;
-          i++;
+          codigo_doenca_da_vez[contcar]=caractere;
+          contcar++;
           }
+          contcar=0;
 
         // Lê o número de genes da doença
         fscanf(entrada, "%d", &numero_genes_doenca_da_vez);
@@ -114,13 +127,13 @@ int main(int argc, char *argv[]){
           while(1){
           char *caractere=fgetc(entrada);
           if(caractere==' '){
-          codigo_dna[i]='\0';
+          codigo_dna[contcar]='\0';
           break;
-          i=0;
           }
           subcadeia_da_vez[i]=caractere;
-          i++;
+          contcar++;
           }
+          contcar=0;
             // Aqui você pode processar a subcadeia_da_vez (gene) como necessário
             printf("Doença: %s, Gene %d: %s\n", codigo_doenca_da_vez, j + 1, subcadeia_da_vez);
 
