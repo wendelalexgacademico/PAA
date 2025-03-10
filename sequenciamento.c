@@ -2,6 +2,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
+
+typedef struct estruturaResultado{
+    char *codigo_da_doenca;
+    int  chance_de_ocorrencia;
+
+}Resultado;
 
 // Procedimento de cálculo da tabela de transição
 void calcular_tabela(int32_t* k, char* P) {
@@ -27,11 +34,12 @@ void inserir(int32_t* R, int posicao, int32_t indice){
 }
 
 
-void KMP(int32_t* k, int32_t* R, char* T, char* P) {
+int KMP(int32_t* k, int32_t* R, char* T, char* P) {
 // Pré-processamento
 int32_t n = strlen(T), m = strlen(P);
 int32_t indice=0;
 calcular_tabela(k, P);
+int32_t limite = (int32_t)round(0.9 * m); // 90% do tamanho do padrão, arredondado
 
 // Iterando na cadeia T
 for(int32_t i = 0, j = -1; i < n; i++) {
@@ -43,13 +51,16 @@ while(j >= 0 && P[j + 1] != T[i]) j = k[j];
 if(P[j + 1] == T[i]) j++;
 
 // Combinação do padrão
-if(j == m - 1) {
+if(j >=limite - 1) {
 
 inserir(R, i - m + 1, indice);
 j = k[j];
 indice++;
 }
 }
+
+if(indice>0){return 1;}else{return 0;}
+
 }
 
 char* ler_linha(FILE* arquivo) {
@@ -98,47 +109,83 @@ int main(int argc, char *argv[]){
           return 1;
      }
 
-      // Variáveis para armazenar os dados
-    int tamanho_minimo_subcadeia;
+    // Variáveis para armazenar os primeiros dados
+    int tamanho_minimo_das_subcadeias;
     char *codigo_dna = NULL;
-    int numero_doencas;
+    int numero_de_doencas;
 
     // Lê a primeira linha (tamanho mínimo da subcadeia)
-    fscanf(entrada, "%d", &tamanho_minimo_subcadeia);
+    fscanf(entrada, "%d", &tamanho_minimo_das_subcadeias);
+    printf("Tamanho minimo: %d\n", tamanho_minimo_das_subcadeias);
 
     //consoem o \n da linha anterior
     fgetc(entrada);
     
     // Lê a segunda linha (código DNA)
     codigo_dna=ler_linha(entrada);
-  
-    // Lê a terceira linha (número de doenças)
-    fscanf(entrada, "%d", &numero_doencas);
+    printf("Codigo de DNA: %s\n", codigo_dna);
 
-    // Loop para ler as doenças e seus genes
-    for (int i = 0; i < numero_doencas; i++) {
+
+    // Lê a terceira linha (número de doenças)
+    fscanf(entrada, "%d", &numero_de_doencas);
+    printf("NUmero de doencas: %d\n", numero_de_doencas);
+    Resultado *resultadoDoencas= (Resultado*) malloc(numero_de_doencas*sizeof(Resultado));
+
+     if (resultadoDoencas == NULL) {
+        printf("Erro ao alocar memória.\n");
+        free(codigo_dna);
+        fclose(entrada);
+        fclose(saida);
+        return 1;
+    }
+
+    fgetc(entrada); // Consome o '\n' restante da linha anterior
+
+    // Loop para ler o codigo das doenças, a quantidade e seus genes
+    for (int i = 0; i < numero_de_doencas; i++) {
         char *codigo_doenca_da_vez = NULL;
         int numero_genes_doenca_da_vez;
-
-        fgetc(entrada); // Consome o '\n' restante da linha anterior
         
         // Lê o código da doença
         codigo_doenca_da_vez=ler_linha(entrada);
-
         // Lê o número de genes da doença
         fscanf(entrada, "%d", &numero_genes_doenca_da_vez);
+        fgetc(entrada); // Consome o '\n' restante da linha anterior
+        int32_t numero_genes_correspondidos=0;
 
         // Loop para ler os genes da doença
         for (int j = 0; j < numero_genes_doenca_da_vez; j++) {
+            int32_t *R= (int32_t*) malloc(strlen(codigo_dna)*(sizeof(int32_t)));
+            
             char *subcadeia_da_vez = NULL;
 
             subcadeia_da_vez=ler_linha(entrada);
+
+            if (subcadeia_da_vez == NULL) {
+                free(codigo_doenca_da_vez);
+                free(codigo_dna);
+                free(resultadoDoencas);
+                fclose(entrada);
+                fclose(saida);
+                return 1;
+            }
+
+            int32_t *k= (int32_t*) malloc(strlen(subcadeia_da_vez)*(sizeof(int32_t)));
+
+            if(strlen(subcadeia_da_vez)<tamanho_minimo_das_subcadeias){
+                 free(subcadeia_da_vez);
+                free(R);
+                free(k);
+                continue;
+                }
           
             // Aqui você pode processar a subcadeia_da_vez (gene) como necessário
-            printf("Doença: %s, Gene %d: %s\n", codigo_doenca_da_vez, j + 1, subcadeia_da_vez);
-
+            numero_genes_correspondidos+=KMP(k, R, codigo_dna, subcadeia_da_vez);
+            printf("Numero de Genes Correspondidos com a doenca %s: %d/n", codigo_doenca_da_vez, numero_genes_correspondidos);
             // Libera a memória alocada para a subcadeia
             free(subcadeia_da_vez);
+            free(R);
+            free(k);
         }
 
         // Libera a memória alocada para o código da doença
